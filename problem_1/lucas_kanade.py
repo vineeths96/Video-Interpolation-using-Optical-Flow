@@ -5,7 +5,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 
-def lucas_kanade(firstImage, secondImage, N, image_ind, dataset, tau=1e-4):
+def lucas_kanade(firstImage, secondImage, N, image_ind, dataset, tau=1e-3):
     firstImage = np.array(firstImage) / 255
     secondImage = np.array(secondImage) / 255
     image_shape = firstImage.shape
@@ -53,10 +53,16 @@ def lucas_kanade(firstImage, secondImage, N, image_ind, dataset, tau=1e-4):
     plt.imshow(firstImage * 255, cmap='gray')
     plt.imshow(flow_map, cmap=None)
 
-    added_image = cv2.addWeighted(firstImage * 255, 0.5, flow_map, 0.5, 0)
-    cv2.imwrite(f'./results/problem_1/{dataset}/flow_map_{image_ind}.png', added_image)
-
+    # added_image = cv2.addWeighted(firstImage * 255, 0.5, flow_map, 0.5, 0)
+    # cv2.imwrite(f'./results/problem_1/optical_flow/{dataset}/flow_map_{image_ind}.png', added_image)
+    # vis_optic_flow_arrows(firstImage, [u, v], f'./results/problem_1/optical_flow/{dataset}/flow_map_{image_ind}.png')
     plt.show()
+
+    flow = np.zeros([image_shape[0], image_shape[1], 2], dtype=np.float32)
+    flow[:, :, 0] = u
+    flow[:, :, 1] = v
+
+    return flow
 
 
 def compute_flow_map(u, v, gran=8):
@@ -73,3 +79,24 @@ def compute_flow_map(u, v, gran=8):
                     cv2.arrowedLine(flow_map, (x, y), (x + dx, y + dy), 255, 1)
 
     return flow_map
+
+
+def vis_optic_flow_arrows(img, flow, filename, show=True):
+    x = np.arange(0, img.shape[1], 1)
+    y = np.arange(0, img.shape[0], 1)
+    x, y = np.meshgrid(x, y)
+    u, v = flow
+
+    plt.figure()
+    fig = plt.imshow(img, cmap='gray', interpolation='bicubic')
+
+    plt.axis('off')
+    fig.axes.get_xaxis().set_visible(False)
+    fig.axes.get_yaxis().set_visible(False)
+    step = img.shape[0] // 50
+
+    plt.quiver(x[::step, ::step], y[::step, ::step], u[::step, ::step], v[::step, ::step], color='r', pivot='middle', headwidth=2, headlength=3)
+    plt.savefig(filename, bbox_inches='tight', pad_inches=0)
+
+    if show:
+        plt.show()
