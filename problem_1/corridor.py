@@ -7,7 +7,7 @@ from .interpolations import warp_flow
 
 def corridor_interpolation(N=4):
     images = glob.glob('./input/corridor/*.pgm')
-    images.sort()
+    images.sort(key=lambda f: int(re.sub('\D', '', f)))
 
     for ind in range(0, len(images) - 1, 2):
         firstImage = cv2.imread(images[ind], flags=cv2.IMREAD_UNCHANGED)

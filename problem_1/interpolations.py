@@ -4,7 +4,7 @@ import numpy as np
 
 def warp_flow(firstImage, secondImage, forward_flow, backward_flow, image_ind, dataset):
     height, width = forward_flow.shape[:2]
-    forward_flow = forward_flow
+    forward_flow = forward_flow / 2
     R2 = np.dstack(np.meshgrid(np.arange(width), np.arange(height)))
 
     pixel_map = np.array(R2 + forward_flow, dtype=np.float32)
@@ -13,7 +13,7 @@ def warp_flow(firstImage, secondImage, forward_flow, backward_flow, image_ind, d
                 forward_prediction)
 
     height, width = backward_flow.shape[:2]
-    backward_flow = backward_flow
+    backward_flow = backward_flow / 2
     R2 = np.dstack(np.meshgrid(np.arange(width), np.arange(height)))
 
     pixel_map = np.array(R2 + backward_flow, dtype=np.float32)
