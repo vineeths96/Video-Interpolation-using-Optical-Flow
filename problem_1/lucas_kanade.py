@@ -5,32 +5,36 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 
-def lucas_kanade(firstImage, secondImage, N, image_ind, dataset, tau=1e-3):
-    firstImage = np.array(firstImage) / 255
-    secondImage = np.array(secondImage) / 255
+def lucas_kanade(firstImage, secondImage, N, image_ind, dataset, tau=1e-100):
+    firstImage = firstImage / 255
+    secondImage = secondImage / 255
     image_shape = firstImage.shape
     half_window_size = N // 2
 
-    # kernel_x = np.array([[-1, 1]])
-    # kernel_y = np.array([[-1], [1]])
-    # kernel_t = np.array([[1]])
+    kernel_x = np.array([[-1, 1]])
+    kernel_y = np.array([[-1], [1]])
+    kernel_t = np.array([[1]])
 
-    kernel_x = np.array([[-1., 1.], [-1., 1.]])
-    kernel_y = np.array([[-1., -1.], [1., 1.]])
-    kernel_t = np.array([[1., 1.], [1., 1.]])
+    # kernel_x = np.array([[-1., 1.], [-1., 1.]])
+    # kernel_y = np.array([[-1., -1.], [1., 1.]])
+    # kernel_t = np.array([[1., 1.], [1., 1.]])
 
     Ix = scipy.ndimage.convolve(input=firstImage, weights=kernel_x, mode='nearest')
     Iy = scipy.ndimage.convolve(input=firstImage, weights=kernel_y, mode='nearest')
-    It = scipy.ndimage.convolve(input=secondImage, weights=kernel_t, mode='nearest') + scipy.ndimage.convolve(input=firstImage, weights=-kernel_t, mode='nearest')
+    It = scipy.ndimage.convolve(input=secondImage, weights=kernel_t, mode='nearest') + scipy.ndimage.convolve(
+        input=firstImage, weights=-kernel_t, mode='nearest')
 
     u = np.zeros(image_shape)
     v = np.zeros(image_shape)
 
     for row_ind in range(half_window_size, image_shape[0] - half_window_size):
         for col_ind in range(half_window_size, image_shape[1] - half_window_size):
-            Ix_windowed = Ix[row_ind - half_window_size: row_ind + half_window_size + 1, col_ind - half_window_size: col_ind + half_window_size + 1].flatten()
-            Iy_windowed = Iy[row_ind - half_window_size: row_ind + half_window_size + 1, col_ind - half_window_size: col_ind + half_window_size + 1].flatten()
-            It_windowed = It[row_ind - half_window_size: row_ind + half_window_size + 1, col_ind - half_window_size: col_ind + half_window_size + 1].flatten()
+            Ix_windowed = Ix[row_ind - half_window_size: row_ind + half_window_size + 1,
+                          col_ind - half_window_size: col_ind + half_window_size + 1].flatten()
+            Iy_windowed = Iy[row_ind - half_window_size: row_ind + half_window_size + 1,
+                          col_ind - half_window_size: col_ind + half_window_size + 1].flatten()
+            It_windowed = It[row_ind - half_window_size: row_ind + half_window_size + 1,
+                          col_ind - half_window_size: col_ind + half_window_size + 1].flatten()
 
             A = np.asarray([Ix_windowed, Iy_windowed]).reshape(-1, 2)
             b = np.asarray(It_windowed)
@@ -48,6 +52,7 @@ def lucas_kanade(firstImage, secondImage, N, image_ind, dataset, tau=1e-3):
             w = A_transpose_A_PINV @ np.transpose(A) @ b
 
             u[row_ind, col_ind], v[row_ind, col_ind] = w
+            # u[row_ind-half_window_size: row_ind+half_window_size+1, col_ind-half_window_size:col_ind+half_window_size+1], v[row_ind-half_window_size: row_ind+half_window_size+1, col_ind-half_window_size:col_ind+half_window_size+1] = w
 
     flow_map = compute_flow_map(u, v, 8)
     plt.imshow(firstImage * 255, cmap='gray')
@@ -95,7 +100,8 @@ def vis_optic_flow_arrows(img, flow, filename, show=True):
     fig.axes.get_yaxis().set_visible(False)
     step = img.shape[0] // 50
 
-    plt.quiver(x[::step, ::step], y[::step, ::step], u[::step, ::step], v[::step, ::step], color='r', pivot='middle', headwidth=2, headlength=3)
+    plt.quiver(x[::step, ::step], y[::step, ::step], u[::step, ::step], v[::step, ::step], color='r', pivot='middle',
+               headwidth=2, headlength=3)
     plt.savefig(filename, bbox_inches='tight', pad_inches=0)
 
     if show:

@@ -3,4 +3,4 @@ from problem_1.sphere import sphere_interpolation
 
 
 corridor_interpolation()
-# sphere_interpolation()
+sphere_interpolation()
