@@ -5,7 +5,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 
-def lucas_kanade(firstImage, secondImage, N, image_ind, dataset, tau=1e-100):
+def lucas_kanade(firstImage, secondImage, N, image_ind, dataset, tau=1e-2):
     firstImage = firstImage / 255
     secondImage = secondImage / 255
     image_shape = firstImage.shape
@@ -58,7 +58,8 @@ def lucas_kanade(firstImage, secondImage, N, image_ind, dataset, tau=1e-100):
     plt.imshow(firstImage * 255, cmap='gray')
     plt.imshow(flow_map, cmap=None)
 
-    # added_image = cv2.addWeighted(firstImage * 255, 0.5, flow_map, 0.5, 0)
+    # firstImage_denormalized = (firstImage * 255).astype(np.float32)
+    # added_image = cv2.addWeighted(firstImage_denormalized, 0.5, flow_map, 0.5, 0, dtype=cv2.CV_32F)
     # cv2.imwrite(f'./results/problem_1/optical_flow/{dataset}/flow_map_{image_ind}.png', added_image)
     # vis_optic_flow_arrows(firstImage, [u, v], f'./results/problem_1/optical_flow/{dataset}/flow_map_{image_ind}.png')
     plt.show()
@@ -67,7 +68,7 @@ def lucas_kanade(firstImage, secondImage, N, image_ind, dataset, tau=1e-100):
     flow[:, :, 0] = u
     flow[:, :, 1] = v
 
-    return flow
+    return flow, [Ix, Iy, It]
 
 
 def compute_flow_map(u, v, gran=8):
@@ -98,7 +99,7 @@ def vis_optic_flow_arrows(img, flow, filename, show=True):
     plt.axis('off')
     fig.axes.get_xaxis().set_visible(False)
     fig.axes.get_yaxis().set_visible(False)
-    step = img.shape[0] // 50
+    step = img.shape[0] // 75
 
     plt.quiver(x[::step, ::step], y[::step, ::step], u[::step, ::step], v[::step, ::step], color='r', pivot='middle',
                headwidth=2, headlength=3)

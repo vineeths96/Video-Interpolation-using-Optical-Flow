@@ -17,7 +17,7 @@ def sphere_interpolation(N=11):
         firstImage = np.array(firstImage, dtype=np.float32)
         secondImage = np.array(secondImage, dtype=np.float32)
 
-        forward_flow = lucas_kanade(firstImage, secondImage, N, ind, 'sphere')
-        backward_flow = lucas_kanade(secondImage, firstImage, N, ind, 'sphere')
+        forward_flow, If = lucas_kanade(firstImage, secondImage, N, ind, 'corridor')
+        backward_flow, Ib = lucas_kanade(secondImage, firstImage, N, ind, 'corridor')
 
-        warp_flow(firstImage, secondImage, forward_flow, backward_flow, ind, 'sphere')
+        warp_flow(firstImage, secondImage, forward_flow, If, backward_flow, Ib, ind, 'corridor')
