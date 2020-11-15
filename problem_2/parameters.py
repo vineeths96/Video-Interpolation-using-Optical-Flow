@@ -1,0 +1,4 @@
+ITERATION = 3
+LEVEL = 3
+SIGMA = 1.5
+KERNEL = (3, 3)
