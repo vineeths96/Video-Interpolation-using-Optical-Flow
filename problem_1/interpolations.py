@@ -68,6 +68,34 @@ def warp_flow(firstImage, secondImage, forward_flow, If, backward_flow, Ib, imag
 
     uti = outside_in_fill(ut)
 
+    occlusion_first = np.zeros_like(firstImage)
+    occlusion_second = np.zeros_like(secondImage)
+
+    occlusion_xx = np.broadcast_to(np.arange(width), (height, width))
+    occlusion_yy = np.broadcast_to(np.arange(height)[:, None], (height, width))
+
+    occlusion_x1 = np.round(xx + forward_flow[:, :, 0]).astype(np.int)
+    occlusion_y1 = np.round(yy + forward_flow[:, :, 1]).astype(np.int)
+
+    for i in range(occlusion_first.shape[0]):
+        for j in range(occlusion_first.shape[1]):
+            if np.abs(forward_flow[i, j, 0] + backward_flow[occlusion_x1[i, j], occlusion_y1[i, j], 0]) > 0.25:
+                occlusion_first[i, j] = 1
+
+            if np.abs(forward_flow[i, j, 1] + backward_flow[occlusion_x1[i, j], occlusion_y1[i, j], 1]) > 0.25:
+                occlusion_first[i, j] = 1
+
+    occlusion_x1 = np.round(xx + backward_flow[:, :, 0]).astype(np.int)
+    occlusion_y1 = np.round(yy + backward_flow[:, :, 1]).astype(np.int)
+
+    for i in range(occlusion_second.shape[0]):
+        for j in range(occlusion_second.shape[1]):
+            if np.abs(backward_flow[i, j, 0] + forward_flow[occlusion_x1[i, j], occlusion_y1[i, j], 0]) > 0.25:
+                occlusion_second[i, j] = 1
+
+            if np.abs(backward_flow[i, j, 1] + forward_flow[occlusion_x1[i, j], occlusion_y1[i, j], 1]) > 0.25:
+                occlusion_second[i, j] = 1
+
     img0_for_x = xx - t * uti[:, :, 0]
     img0_for_y = yy - t * uti[:, :, 1]
 
@@ -86,7 +114,12 @@ def warp_flow(firstImage, secondImage, forward_flow, If, backward_flow, Ib, imag
 
     for i in range(It.shape[0]):
         for j in range(It.shape[1]):
-            It[i, j] = (1 - t) * ip1(xt0[i, j], yt0[i, j]) + t * ip2(xt1[i, j], yt1[i, j])
+            if not occlusion_first[i, j] or occlusion_second[i, j] or occlusion_first[i, j] and occlusion_second[i, j]:
+                It[i, j] = (1 - t) * ip1(xt0[i, j], yt0[i, j]) + t * ip2(xt1[i, j], yt1[i, j])
+            elif occlusion_first[i,j]:
+                It[i, j] = ip2(xt1[i, j], yt1[i, j])
+            elif occlusion_second[i,j]:
+                It[i, j] = ip1(xt0[i, j], yt0[i, j])
 
     cv2.imwrite(f'./results/problem_1/interpolated_frames/{dataset}/interpolated_{image_ind + 1}.png',
                 It)
