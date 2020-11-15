@@ -63,11 +63,10 @@ def lucas_kanade(firstImage, secondImage, N, image_ind, dataset, tau=1e-3):
     # vis_optic_flow_arrows(firstImage, [u, v], f'./results/problem_1/optical_flow/{dataset}/flow_map_{image_ind}.png')
     plt.show()
 
-    flow = np.zeros([image_shape[0], image_shape[1], 2], dtype=np.float32)
-    flow[:, :, 0] = u
-    flow[:, :, 1] = v
+    flow = [u, v]
+    I = [Ix, Iy, It]
 
-    return flow, [Ix, Iy, It]
+    return flow, I
 
 
 def compute_flow_map(u, v, gran=8):

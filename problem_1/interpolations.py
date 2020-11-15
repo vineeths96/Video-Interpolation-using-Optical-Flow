@@ -4,30 +4,19 @@ import scipy.interpolate
 
 
 def warp_flow(firstImage, secondImage, forward_flow, If, backward_flow, Ib, image_ind, dataset):
-    height, width = forward_flow.shape[:2]
-    forward_prediction = np.zeros([height, width])
-    forward_flow = forward_flow
+    height, width = firstImage.shape
+    uf, vf = forward_flow
     Ix, Iy, It = If
 
-    for i in range(height):
-        for j in range(width):
-            forward_prediction[i, j] = firstImage[i, j] / 255 + forward_flow[i, j, 0] * Ix[i, j] + forward_flow[
-                i, j, 1] * Iy[i, j] + It[i, j]
-
+    forward_prediction = firstImage / 255 + uf * Ix + vf * Iy + It
     forward_prediction = forward_prediction * 255
     cv2.imwrite(f'./results/problem_1/interpolated_frames/{dataset}/forward_prediction_{image_ind + 1}.png',
                 forward_prediction)
 
-    height, width = backward_flow.shape[:2]
-    backward_prediction = np.zeros([height, width])
-    backward_flow = backward_flow
+    ub, vb = backward_flow
     Ix, Iy, It = Ib
 
-    for i in range(height):
-        for j in range(width):
-            backward_prediction[i, j] = secondImage[i, j] / 255 + backward_flow[i, j, 0] * Ix[i, j] + backward_flow[
-                i, j, 1] * Iy[i, j] + It[i, j]
-
+    backward_prediction = secondImage / 255 + ub * Ix + vb * Iy + It
     backward_prediction = backward_prediction * 255
     cv2.imwrite(f'./results/problem_1/interpolated_frames/{dataset}/backward_prediction_{image_ind + 1}.png',
                 backward_prediction)
@@ -37,8 +26,7 @@ def warp_flow(firstImage, secondImage, forward_flow, If, backward_flow, Ib, imag
     cv2.imwrite(f'./results/problem_1/interpolated_frames/{dataset}/interpolated_{image_ind + 1}.png',
                 interpolated_frame)
 
-    # trial
-    ut = np.full(forward_flow.shape, np.nan)
+    ut = np.full([uf.shape[0], uf.shape[1], 2], np.nan)
     occ_detect = True
     t = 0.5
     if occ_detect:
@@ -47,59 +35,58 @@ def warp_flow(firstImage, secondImage, forward_flow, If, backward_flow, Ib, imag
     xx = np.broadcast_to(np.arange(width), (height, width))
     yy = np.broadcast_to(np.arange(height)[:, None], (height, width))
 
-    xt = np.round(xx + t * forward_flow[:, :, 0])
-    yt = np.round(yy + t * forward_flow[:, :, 1])
+    xt = np.round(xx + t * uf)
+    yt = np.round(yy + t * vf)
 
-    for j in range(height):
-        for i in range(width):
-            j1 = int(yt[j, i])
-            i1 = int(xt[j, i])
+    for i in range(height):
+        for j in range(width):
+            i1 = int(yt[i, j])
+            j1 = int(xt[i, j])
 
-            if i1 >= 0 and i1 < width and j1 >= 0 and j1 < height:
+            if j1 >= 0 and j1 < width and i1 >= 0 and i1 < height:
                 if occ_detect:
-                    e = np.square(secondImage[j1, i1] - firstImage[j, i])
+                    e = np.square(secondImage[i1, j1] - firstImage[i, j])
                     s = np.sum(e)
 
-                    if s < similarity[j1, i1]:
-                        ut[j1, i1, :] = forward_flow[j, i, :]
-                        similarity[j1, i1] = s
+                    if s < similarity[i1, j1]:
+                        ut[i1, j1, 0] = uf[i, j]
+                        ut[i1, j1, 1] = vf[i, j]
+                        similarity[i1, j1] = s
                 else:
-                    ut[j1, i1, :] = forward_flow[j, i, :]
+                    ut[i1, j1, 0] = uf[i, j]
+                    ut[i1, j1, 1] = vf[i, j]
 
     uti = outside_in_fill(ut)
 
     occlusion_first = np.zeros_like(firstImage)
     occlusion_second = np.zeros_like(secondImage)
 
-    occlusion_xx = np.broadcast_to(np.arange(width), (height, width))
-    occlusion_yy = np.broadcast_to(np.arange(height)[:, None], (height, width))
-
-    occlusion_x1 = np.round(xx + forward_flow[:, :, 0]).astype(np.int)
-    occlusion_y1 = np.round(yy + forward_flow[:, :, 1]).astype(np.int)
+    occlusion_x1 = np.round(xx + uf).astype(np.int)
+    occlusion_y1 = np.round(yy + vf).astype(np.int)
 
     occlusion_x1 = np.clip(occlusion_x1, 0, height-1)
     occlusion_y1 = np.clip(occlusion_y1, 0, width-1)
 
     for i in range(occlusion_first.shape[0]):
         for j in range(occlusion_first.shape[1]):
-            if np.abs(forward_flow[i, j, 0] + backward_flow[occlusion_x1[i, j], occlusion_y1[i, j], 0]) > 0.5:
+            if np.abs(uf[i, j] + ub[occlusion_x1[i, j], occlusion_y1[i, j]]) > 0.5:
                 occlusion_first[i, j] = 1
 
-            if np.abs(forward_flow[i, j, 1] + backward_flow[occlusion_x1[i, j], occlusion_y1[i, j], 1]) > 0.5:
+            if np.abs(vf[i, j] + vb[occlusion_x1[i, j], occlusion_y1[i, j]]) > 0.5:
                 occlusion_first[i, j] = 1
 
-    occlusion_x1 = np.round(xx + backward_flow[:, :, 0]).astype(np.int)
-    occlusion_y1 = np.round(yy + backward_flow[:, :, 1]).astype(np.int)
+    occlusion_x1 = np.round(xx + ub).astype(np.int)
+    occlusion_y1 = np.round(yy + vb).astype(np.int)
 
     occlusion_x1 = np.clip(occlusion_x1, 0, height-1)
     occlusion_y1 = np.clip(occlusion_y1, 0, width-1)
 
     for i in range(occlusion_second.shape[0]):
         for j in range(occlusion_second.shape[1]):
-            if np.abs(backward_flow[i, j, 0] + forward_flow[occlusion_x1[i, j], occlusion_y1[i, j], 0]) > 0.5:
+            if np.abs(ub[i, j] + uf[occlusion_x1[i, j], occlusion_y1[i, j]]) > 0.5:
                 occlusion_second[i, j] = 1
 
-            if np.abs(backward_flow[i, j, 1] + forward_flow[occlusion_x1[i, j], occlusion_y1[i, j], 1]) > 0.5:
+            if np.abs(vb[i, j] + vf[occlusion_x1[i, j], occlusion_y1[i, j]]) > 0.5:
                 occlusion_second[i, j] = 1
 
     img0_for_x = xx - t * uti[:, :, 0]
@@ -115,17 +102,17 @@ def warp_flow(firstImage, secondImage, forward_flow, If, backward_flow, Ib, imag
     yt1 = np.clip(img1_for_y, 0, width - 1)
 
     It = np.zeros(firstImage.shape)
-    ip1 = scipy.interpolate.RectBivariateSpline(np.arange(width), np.arange(height), firstImage.T)
-    ip2 = scipy.interpolate.RectBivariateSpline(np.arange(width), np.arange(height), secondImage.T)
+    image1_interp = scipy.interpolate.RectBivariateSpline(np.arange(width), np.arange(height), firstImage.T)
+    image2_interp = scipy.interpolate.RectBivariateSpline(np.arange(width), np.arange(height), secondImage.T)
 
     for i in range(It.shape[0]):
         for j in range(It.shape[1]):
             if not occlusion_first[i, j] or occlusion_second[i, j] or occlusion_first[i, j] and occlusion_second[i, j]:
-                It[i, j] = (1 - t) * ip1(xt0[i, j], yt0[i, j]) + t * ip2(xt1[i, j], yt1[i, j])
+                It[i, j] = t * image1_interp(xt0[i, j], yt0[i, j]) + (1-t) * image2_interp(xt1[i, j], yt1[i, j])
             elif occlusion_first[i,j]:
-                It[i, j] = ip2(xt1[i, j], yt1[i, j])
+                It[i, j] = image2_interp(xt1[i, j], yt1[i, j])
             elif occlusion_second[i,j]:
-                It[i, j] = ip1(xt0[i, j], yt0[i, j])
+                It[i, j] = image1_interp(xt0[i, j], yt0[i, j])
 
     It = It.astype(np.int)
     cv2.imwrite(f'./results/problem_1/interpolated_frames/{dataset}/interpolated_{image_ind + 1}.png', It)
@@ -172,6 +159,7 @@ def outside_in_fill(image):
         if rstart < rend:
             rstart = rstart + 1
             rend = rend - 1
+
     output = image
 
     return output
