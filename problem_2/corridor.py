@@ -4,7 +4,7 @@ import numpy as np
 import regex as re
 from .lk_pyramid import lucas_kanade_pyramid
 from .interpolations import warp_flow
-from.parameters import *
+from .parameters import *
 
 
 def corridor_interpolation(N=5):
