@@ -6,7 +6,7 @@ from .lucas_kanade import lucas_kanade
 from .interpolations import warp_flow
 
 
-def corridor_interpolation(N=11):
+def corridor_interpolation(N=5):
     images = glob.glob('./input/corridor/*.pgm')
     images.sort(key=lambda f: int(re.sub('\D', '', f)))
 
@@ -21,4 +21,3 @@ def corridor_interpolation(N=11):
         backward_flow, Ib = lucas_kanade(secondImage, firstImage, N, ind, 'corridor')
 
         warp_flow(firstImage, secondImage, forward_flow, If, backward_flow, Ib, ind, 'corridor')
-        break

@@ -77,23 +77,29 @@ def warp_flow(firstImage, secondImage, forward_flow, If, backward_flow, Ib, imag
     occlusion_x1 = np.round(xx + forward_flow[:, :, 0]).astype(np.int)
     occlusion_y1 = np.round(yy + forward_flow[:, :, 1]).astype(np.int)
 
+    occlusion_x1 = np.clip(occlusion_x1, 0, height-1)
+    occlusion_y1 = np.clip(occlusion_y1, 0, width-1)
+
     for i in range(occlusion_first.shape[0]):
         for j in range(occlusion_first.shape[1]):
-            if np.abs(forward_flow[i, j, 0] + backward_flow[occlusion_x1[i, j], occlusion_y1[i, j], 0]) > 0.25:
+            if np.abs(forward_flow[i, j, 0] + backward_flow[occlusion_x1[i, j], occlusion_y1[i, j], 0]) > 0.5:
                 occlusion_first[i, j] = 1
 
-            if np.abs(forward_flow[i, j, 1] + backward_flow[occlusion_x1[i, j], occlusion_y1[i, j], 1]) > 0.25:
+            if np.abs(forward_flow[i, j, 1] + backward_flow[occlusion_x1[i, j], occlusion_y1[i, j], 1]) > 0.5:
                 occlusion_first[i, j] = 1
 
     occlusion_x1 = np.round(xx + backward_flow[:, :, 0]).astype(np.int)
     occlusion_y1 = np.round(yy + backward_flow[:, :, 1]).astype(np.int)
 
+    occlusion_x1 = np.clip(occlusion_x1, 0, height-1)
+    occlusion_y1 = np.clip(occlusion_y1, 0, width-1)
+
     for i in range(occlusion_second.shape[0]):
         for j in range(occlusion_second.shape[1]):
-            if np.abs(backward_flow[i, j, 0] + forward_flow[occlusion_x1[i, j], occlusion_y1[i, j], 0]) > 0.25:
+            if np.abs(backward_flow[i, j, 0] + forward_flow[occlusion_x1[i, j], occlusion_y1[i, j], 0]) > 0.5:
                 occlusion_second[i, j] = 1
 
-            if np.abs(backward_flow[i, j, 1] + forward_flow[occlusion_x1[i, j], occlusion_y1[i, j], 1]) > 0.25:
+            if np.abs(backward_flow[i, j, 1] + forward_flow[occlusion_x1[i, j], occlusion_y1[i, j], 1]) > 0.5:
                 occlusion_second[i, j] = 1
 
     img0_for_x = xx - t * uti[:, :, 0]
@@ -121,8 +127,8 @@ def warp_flow(firstImage, secondImage, forward_flow, If, backward_flow, Ib, imag
             elif occlusion_second[i,j]:
                 It[i, j] = ip1(xt0[i, j], yt0[i, j])
 
-    cv2.imwrite(f'./results/problem_1/interpolated_frames/{dataset}/interpolated_{image_ind + 1}.png',
-                It)
+    It = It.astype(np.int)
+    cv2.imwrite(f'./results/problem_1/interpolated_frames/{dataset}/interpolated_{image_ind + 1}.png', It)
 
 
 def outside_in_fill(image):
