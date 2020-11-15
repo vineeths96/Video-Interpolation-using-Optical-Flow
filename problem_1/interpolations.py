@@ -21,10 +21,10 @@ def warp_flow(firstImage, secondImage, forward_flow, If, backward_flow, Ib, imag
     cv2.imwrite(f'./results/problem_1/interpolated_frames/{dataset}/backward_prediction_{image_ind + 1}.png',
                 backward_prediction)
 
-    interpolated_frame = cv2.addWeighted(forward_prediction, 0.5, backward_prediction, 0.5, 0)
-    interpolated_frame = interpolated_frame * 255
-    cv2.imwrite(f'./results/problem_1/interpolated_frames/{dataset}/interpolated_{image_ind + 1}.png',
-                interpolated_frame)
+    # interpolated_frame = cv2.addWeighted(forward_prediction, 0.5, backward_prediction, 0.5, 0)
+    # interpolated_frame = interpolated_frame * 255
+    # cv2.imwrite(f'./results/problem_1/interpolated_frames/{dataset}/interpolated_{image_ind + 1}.png',
+    #             interpolated_frame)
 
     ut = np.full([uf.shape[0], uf.shape[1], 2], np.nan)
     occ_detect = True
