@@ -22,7 +22,6 @@ def warp_flow(firstImage, secondImage, forward_flow, If, backward_flow, Ib, imag
                 backward_prediction)
 
     # interpolated_frame = cv2.addWeighted(forward_prediction, 0.5, backward_prediction, 0.5, 0)
-    # interpolated_frame = interpolated_frame * 255
     # cv2.imwrite(f'./results/problem_2/interpolated_frames/{dataset}/interpolated_{image_ind + 1}.png',
     #             interpolated_frame)
 
@@ -40,21 +39,21 @@ def warp_flow(firstImage, secondImage, forward_flow, If, backward_flow, Ib, imag
 
     for i in range(height):
         for j in range(width):
-            i1 = int(yt[i, j])
-            j1 = int(xt[i, j])
+            i_ind_image = int(yt[i, j])
+            j_ind_image = int(xt[i, j])
 
-            if j1 >= 0 and j1 < width and i1 >= 0 and i1 < height:
+            if i_ind_image >= 0 and i_ind_image < height and j_ind_image >= 0 and j_ind_image < width:
                 if occ_detect:
-                    e = np.square(secondImage[i1, j1] - firstImage[i, j])
+                    e = np.square(secondImage[i_ind_image, j_ind_image] - firstImage[i, j])
                     s = np.sum(e)
 
-                    if s < similarity[i1, j1]:
-                        ut[i1, j1, 0] = uf[i, j]
-                        ut[i1, j1, 1] = vf[i, j]
-                        similarity[i1, j1] = s
+                    if s < similarity[i_ind_image, j_ind_image]:
+                        ut[i_ind_image, j_ind_image, 0] = uf[i, j]
+                        ut[i_ind_image, j_ind_image, 1] = vf[i, j]
+                        similarity[i_ind_image, j_ind_image] = s
                 else:
-                    ut[i1, j1, 0] = uf[i, j]
-                    ut[i1, j1, 1] = vf[i, j]
+                    ut[i_ind_image, j_ind_image, 0] = uf[i, j]
+                    ut[i_ind_image, j_ind_image, 1] = vf[i, j]
 
     uti = outside_in_fill(ut)
 
@@ -121,44 +120,44 @@ def warp_flow(firstImage, secondImage, forward_flow, If, backward_flow, Ib, imag
 def outside_in_fill(image):
     rows, cols = image.shape[:2]
 
-    cstart = 0
-    cend = cols
-    rstart = 0
-    rend = rows
+    col_start = 0
+    col_end = cols
+    row_start = 0
+    row_end = rows
     lastValid = np.full([2], np.nan)
 
-    while cstart < cend or rstart < rend:
-        for c in range(cstart, cend):
-            if not np.isnan(image[rstart, c, 0]):
-                lastValid = image[rstart, c, :]
+    while col_start < col_end or row_start < row_end:
+        for c in range(col_start, col_end):
+            if not np.isnan(image[row_start, c, 0]):
+                lastValid = image[row_start, c, :]
             else:
-                image[rstart, c, :] = lastValid
+                image[row_start, c, :] = lastValid
 
-        for r in range(rstart, rend):
-            if not np.isnan(image[r, cend - 1, 0]):
-                lastValid = image[r, cend - 1, :]
+        for r in range(row_start, row_end):
+            if not np.isnan(image[r, col_end - 1, 0]):
+                lastValid = image[r, col_end - 1, :]
             else:
-                image[r, cend - 1, :] = lastValid
+                image[r, col_end - 1, :] = lastValid
 
-        for c in reversed(range(cstart, cend)):
-            if not np.isnan(image[rend - 1, c, 0]):
-                lastValid = image[rend - 1, c, :]
+        for c in reversed(range(col_start, col_end)):
+            if not np.isnan(image[row_end - 1, c, 0]):
+                lastValid = image[row_end - 1, c, :]
             else:
-                image[rend - 1, c, :] = lastValid
+                image[row_end - 1, c, :] = lastValid
 
-        for r in reversed(range(rstart, rend)):
-            if not np.isnan(image[r, cstart, 0]):
-                lastValid = image[r, cstart, :]
+        for r in reversed(range(row_start, row_end)):
+            if not np.isnan(image[r, col_start, 0]):
+                lastValid = image[r, col_start, :]
             else:
-                image[r, cstart, :] = lastValid
+                image[r, col_start, :] = lastValid
 
-        if cstart < cend:
-            cstart = cstart + 1
-            cend = cend - 1
+        if col_start < col_end:
+            col_start = col_start + 1
+            col_end = col_end - 1
 
-        if rstart < rend:
-            rstart = rstart + 1
-            rend = rend - 1
+        if row_start < row_end:
+            row_start = row_start + 1
+            row_end = row_end - 1
 
     output = image
 

@@ -55,7 +55,7 @@ def lucas_kanade_iterative(firstImage, secondImage, flow, N):
     return u, v
 
 
-def lucas_kanade_pyramid(firstImage, secondImage, iteration, num_levels):
+def lucas_kanade_pyramid(firstImage, secondImage, N, iteration, num_levels):
     firstImage_reference = firstImage.copy()
     secondImage_reference = secondImage.copy()
 
@@ -81,10 +81,10 @@ def lucas_kanade_pyramid(firstImage, secondImage, iteration, num_levels):
     level0_scale = 2 ** level0
     firstImage_level0 = firstImagePyramid[0:(len(firstImagePyramid[:, 0]) // level0_scale), 0:(len(firstImagePyramid[0, :]) // level0_scale), level0]
     secondImage_level0 = secondImagePyramid[0:(len(secondImagePyramid[:, 0]) // level0_scale), 0:(len(secondImagePyramid[0, :]) // level0_scale), level0]
-    (u, v) = lucas_kanade(firstImage_reference, secondImage_reference, N=4)
+    (u, v) = lucas_kanade(firstImage_reference, secondImage_reference, N)
 
     for i in range(0, iteration):
-        (u, v) = lucas_kanade_iterative(firstImage_level0, secondImage_level0, [u, v], N=5)
+        (u, v) = lucas_kanade_iterative(firstImage_level0, secondImage_level0, [u, v], N)
 
     u_levels.append(u.copy())
     v_levels.append(v.copy())
@@ -97,7 +97,7 @@ def lucas_kanade_pyramid(firstImage, secondImage, iteration, num_levels):
         levelk_scale = 2 ** levelk
         firstImageIntermediate = firstImagePyramid[0:(len(firstImagePyramid[:, 0]) // levelk_scale), 0:(len(firstImagePyramid[0, :]) // levelk_scale), levelk]
         secondImageIntermediate = secondImagePyramid[0:(len(secondImagePyramid[:, 0]) // levelk_scale), 0:(len(secondImagePyramid[0, :]) // levelk_scale), levelk]
-        (u, v) = lucas_kanade_iterative(firstImageIntermediate, secondImageIntermediate, [upsampled_u, upsampled_v], N=5)
+        (u, v) = lucas_kanade_iterative(firstImageIntermediate, secondImageIntermediate, [upsampled_u, upsampled_v], N)
 
         u_levels.append(u.copy())
         v_levels.append(v.copy())

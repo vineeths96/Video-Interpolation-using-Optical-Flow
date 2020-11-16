@@ -6,7 +6,7 @@ from .lucas_kanade import lucas_kanade
 from .interpolations import warp_flow
 
 
-def sphere_interpolation(N=11):
+def sphere_interpolation(N=5):
     images = glob.glob('./input/sphere/*.ppm')
     images.sort(key=lambda f: int(re.sub('\D', '', f)))
 

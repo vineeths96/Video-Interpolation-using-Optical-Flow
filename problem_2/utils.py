@@ -12,6 +12,7 @@ def downSample(matrix):
 
 def upSample(matrix):
     matrix_shape = matrix.shape
+    matrix = 2 * matrix
 
     row_upsampled_matrix = np.zeros((matrix_shape[0], 2 * matrix_shape[1]))
     row_upsampled_matrix[:, ::2] = matrix
