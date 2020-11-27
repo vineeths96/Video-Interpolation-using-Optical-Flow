@@ -5,6 +5,15 @@ from .utils import downSample, upSample
 
 
 def lucas_kanade_iterative(firstImage, secondImage, flow, N):
+    """
+    Lucas Kanade Iterative Optical flow estimation between firstImage and secondImage
+    :param firstImage: First image
+    :param secondImage: Second Image
+    :param flow: Current estimate of optical flow
+    :param N: Block size N x N
+    :return: Refined optical flow
+    """
+
     image_shape = firstImage.shape
 
     coarse_u = np.round(flow[0])
@@ -14,14 +23,19 @@ def lucas_kanade_iterative(firstImage, secondImage, flow, N):
     u = np.zeros(image_shape)
     v = np.zeros(image_shape)
 
+    # Find Lucas Kanade OF for a block N x N with least squares solution
     for i in range(half_window_size, image_shape[0] - half_window_size):
         for j in range(half_window_size, image_shape[1] - half_window_size):
-            firstImageSlice = firstImage[i - half_window_size:i + half_window_size+1, j - half_window_size:j + half_window_size + 1]
+            firstImageSlice = firstImage[i - half_window_size:i + half_window_size + 1,
+                              j - half_window_size:j + half_window_size + 1]
+
+            # Find indices to warp second image
             lr = (i - half_window_size) + coarse_v[i, j]
             hr = (i + half_window_size) + coarse_v[i, j]
             lc = (j - half_window_size) + coarse_u[i, j]
             hc = (j + half_window_size) + coarse_u[i, j]
 
+            # Find edge locations and choose possible window
             if lr < 0:
                 lr = 0
                 hr = N - 1
@@ -30,7 +44,7 @@ def lucas_kanade_iterative(firstImage, secondImage, flow, N):
                 lc = 0
                 hc = N - 1
 
-            if hr > (len(firstImage[:, 0])-1):
+            if hr > (len(firstImage[:, 0]) - 1):
                 lr = len(firstImage[:, 0]) - N
                 hr = len(firstImage[:, 0]) - 1
 
@@ -46,16 +60,27 @@ def lucas_kanade_iterative(firstImage, secondImage, flow, N):
                 lc = j - half_window_size
                 hc = j + half_window_size
 
-            secondImageSlice = secondImage[int(lr):int(hr+1), int(lc):int(hc+1)]
+            secondImageSlice = secondImage[int(lr):int(hr + 1), int(lc):int(hc + 1)]
 
+            # Refine optical flow
             uSlice, vSlice = lucas_kanade(firstImageSlice, secondImageSlice, N)
-            u[i, j] = uSlice[half_window_size, half_window_size]
-            v[i, j] = vSlice[half_window_size, half_window_size]
+            u[i, j] = uSlice[half_window_size, half_window_size] + coarse_u[i, j]
+            v[i, j] = vSlice[half_window_size, half_window_size] + coarse_v[i, j]
 
     return u, v
 
 
 def lucas_kanade_pyramid(firstImage, secondImage, N, iteration, num_levels):
+    """
+    Lucas Kanade Pyramid Optical flow estimation between firstImage and secondImage
+    :param firstImage: First image
+    :param secondImage: Second Image
+    :param N: Block size N x N
+    :param iteration: Number of iterations for iterative LK
+    :param num_levels: Number of levels of pyramid
+    :return: Optical flow, Gradients
+    """
+
     firstImage_reference = firstImage.copy()
     secondImage_reference = secondImage.copy()
 
@@ -66,6 +91,7 @@ def lucas_kanade_pyramid(firstImage, secondImage, N, iteration, num_levels):
     firstImage = np.array(firstImage)
     secondImage = np.array(secondImage)
 
+    # Create pyramids by downsampling
     firstImagePyramid = np.empty((firstImage.shape[0], firstImage.shape[1], num_levels))
     secondImagePyramid = np.empty((secondImage.shape[0], secondImage.shape[1], num_levels))
     firstImagePyramid[:, :, 0] = firstImage
@@ -77,10 +103,13 @@ def lucas_kanade_pyramid(firstImage, secondImage, N, iteration, num_levels):
         firstImagePyramid[0:firstImage.shape[0], 0:firstImage.shape[1], level] = firstImage
         secondImagePyramid[0:secondImage.shape[0], 0:secondImage.shape[1], level] = secondImage
 
+    # Find optical flow at level0 and refine it with iterative Lucas Kande method
     level0 = num_levels - 1
     level0_scale = 2 ** level0
-    firstImage_level0 = firstImagePyramid[0:(len(firstImagePyramid[:, 0]) // level0_scale), 0:(len(firstImagePyramid[0, :]) // level0_scale), level0]
-    secondImage_level0 = secondImagePyramid[0:(len(secondImagePyramid[:, 0]) // level0_scale), 0:(len(secondImagePyramid[0, :]) // level0_scale), level0]
+    firstImage_level0 = firstImagePyramid[0:(len(firstImagePyramid[:, 0]) // level0_scale),
+                        0:(len(firstImagePyramid[0, :]) // level0_scale), level0]
+    secondImage_level0 = secondImagePyramid[0:(len(secondImagePyramid[:, 0]) // level0_scale),
+                         0:(len(secondImagePyramid[0, :]) // level0_scale), level0]
     (u, v) = lucas_kanade(firstImage_reference, secondImage_reference, N)
 
     for i in range(0, iteration):
@@ -90,13 +119,16 @@ def lucas_kanade_pyramid(firstImage, secondImage, N, iteration, num_levels):
     v_levels.append(v.copy())
     image_levels.append(firstImage_level0.copy())
 
+    # Find optical flow at all levels of pyramid
     for k in range(1, num_levels):
         upsampled_u = upSample(u)
         upsampled_v = upSample(v)
-        levelk = num_levels - k -1
+        levelk = num_levels - k - 1
         levelk_scale = 2 ** levelk
-        firstImageIntermediate = firstImagePyramid[0:(len(firstImagePyramid[:, 0]) // levelk_scale), 0:(len(firstImagePyramid[0, :]) // levelk_scale), levelk]
-        secondImageIntermediate = secondImagePyramid[0:(len(secondImagePyramid[:, 0]) // levelk_scale), 0:(len(secondImagePyramid[0, :]) // levelk_scale), levelk]
+        firstImageIntermediate = firstImagePyramid[0:(len(firstImagePyramid[:, 0]) // levelk_scale),
+                                 0:(len(firstImagePyramid[0, :]) // levelk_scale), levelk]
+        secondImageIntermediate = secondImagePyramid[0:(len(secondImagePyramid[:, 0]) // levelk_scale),
+                                  0:(len(secondImagePyramid[0, :]) // levelk_scale), levelk]
         (u, v) = lucas_kanade_iterative(firstImageIntermediate, secondImageIntermediate, [upsampled_u, upsampled_v], N)
 
         u_levels.append(u.copy())
@@ -106,6 +138,7 @@ def lucas_kanade_pyramid(firstImage, secondImage, N, iteration, num_levels):
     firstImage = firstImage_reference / 255
     secondImage = secondImage_reference / 255
 
+    # Kernels for finding gradients Ix, Iy, It
     kernel_x = np.array([[-1, 1]])
     kernel_y = np.array([[-1], [1]])
     kernel_t = np.array([[1]])

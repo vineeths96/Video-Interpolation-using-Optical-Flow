@@ -4,6 +4,12 @@ from .parameters import *
 
 
 def downSample(matrix):
+    """
+    Downsample matrix/image with Gaussian smoothing
+    :param matrix: Matrix/Image
+    :return: Downsampled image
+    """
+
     gaussian_matrix = cv2.GaussianBlur(matrix, KERNEL, SIGMA, SIGMA)
     downsampled_matrix = gaussian_matrix[::2, ::2]
 
@@ -11,6 +17,12 @@ def downSample(matrix):
 
 
 def upSample(matrix):
+    """
+    Upsample matrix/image with Gaussian smoothing
+    :param matrix: Matrix/Image
+    :return: Upsampled image
+    """
+
     matrix_shape = matrix.shape
     matrix = 2 * matrix
 

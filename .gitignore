@@ -141,4 +141,7 @@ dmypy.json
 */__pycache__/
 
 
+# Report Tex
+/results/report/
+
 

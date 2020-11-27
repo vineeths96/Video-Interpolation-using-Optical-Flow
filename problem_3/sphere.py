@@ -8,6 +8,11 @@ from .parameters import *
 
 
 def sphere_interpolation():
+    """
+    Sphere dataset interpolation of Frame N+1 from Frame N and Frame N+2
+    :return: None
+    """
+
     images = glob.glob('./input/sphere/*.ppm')
     images.sort(key=lambda f: int(re.sub('\D', '', f)))
 

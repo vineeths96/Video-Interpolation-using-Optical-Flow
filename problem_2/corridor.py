@@ -8,6 +8,12 @@ from .parameters import *
 
 
 def corridor_interpolation(N=5):
+    """
+    Corridor dataset interpolation of Frame N+1 from Frame N and Frame N+2
+    :param N: Block size N x N
+    :return: None
+    """
+
     images = glob.glob('./input/corridor/*.pgm')
     images.sort(key=lambda f: int(re.sub('\D', '', f)))
 

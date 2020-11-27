@@ -7,6 +7,12 @@ from .interpolations import warp_flow
 
 
 def sphere_interpolation(N=5):
+    """
+    Sphere dataset interpolation of Frame N+1 from Frame N and Frame N+2
+    :param N: Block size N x N
+    :return: None
+    """
+
     images = glob.glob('./input/sphere/*.ppm')
     images.sort(key=lambda f: int(re.sub('\D', '', f)))
 
