@@ -1,5 +1,5 @@
-from problem_3.corridor import corridor_interpolation
-from problem_3.sphere import sphere_interpolation
+from horn_schunck.corridor import corridor_interpolation
+from horn_schunck.sphere import sphere_interpolation
 
 
 # Corridor dataset interpolation

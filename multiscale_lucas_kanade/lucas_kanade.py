@@ -72,8 +72,9 @@ def lucas_kanade(firstImage, secondImage, N, image_ind=None, dataset=None, tau=1
 
     # firstImage_denormalized = (firstImage * 255).astype(np.float32)
     # added_image = cv2.addWeighted(firstImage_denormalized, 0.5, flow_map, 1, 0, dtype=cv2.CV_32F)
-    # cv2.imwrite(f'./results/problem_1/optical_flow/{dataset}/flow_map_{image_ind}.png', added_image)
-    # vis_optic_flow_arrows(firstImage, [u, v], f'./results/problem_1/optical_flow/{dataset}/flow_map_{image_ind}.png')
+    # cv2.imwrite(f'./results/multiscale_lucas_kanade/optical_flow/{dataset}/flow_map_{image_ind}.png', added_image)
+    # vis_optic_flow_arrows(firstImage, [u, v],
+    #                       f'./results/multiscale_lucas_kanade/optical_flow/{dataset}/flow_map_{image_ind}.png')
     plt.show()
 
     flow = [u, v]

@@ -71,7 +71,7 @@ def horn_schunk(firstImage, secondImage, lambada, num_iter, image_ind, dataset):
 
     # Plot, visualize and save the optical flow
     # added_image = cv2.addWeighted(firstImage, 0.5, flow_map, 1, 0, dtype=cv2.CV_32F)
-    # cv2.imwrite(f'./results/problem_3/optical_flow/{dataset}/flow_map_{image_ind}.png', added_image)
+    # cv2.imwrite(f'./results/horn_schunck/optical_flow/{dataset}/flow_map_{image_ind}.png', added_image)
     plt.show()
 
     flow = [u, v]

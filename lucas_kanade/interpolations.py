@@ -14,7 +14,7 @@ def warp_flow(firstImage, secondImage, forward_flow, If, backward_flow, Ib, imag
     :param backward_flow: Optical flow from Frame N+2 to Frame N
     :param Ib: Backward gradients [Ix, Iy, It]
     :param image_ind: Current image index
-    :param dataset: Dataset Name
+    :param dataset: Dataset name
     :return: None
     """
 
@@ -26,7 +26,7 @@ def warp_flow(firstImage, secondImage, forward_flow, If, backward_flow, Ib, imag
     # Image is scaled because flow is calculated with scaled images
     forward_prediction = firstImage / 255 + uf * Ix + vf * Iy + It
     forward_prediction = forward_prediction * 255
-    cv2.imwrite(f'./results/problem_2/interpolated_frames/{dataset}/forward_prediction_{image_ind + 1}.png',
+    cv2.imwrite(f'./results/lucas_kanade/interpolated_frames/{dataset}/forward_prediction_{image_ind + 1}.png',
                 forward_prediction)
 
     ub, vb = backward_flow
@@ -35,11 +35,11 @@ def warp_flow(firstImage, secondImage, forward_flow, If, backward_flow, Ib, imag
     # Image is scaled because flow is calculated with scaled images
     backward_prediction = secondImage / 255 + ub * Ix + vb * Iy + It
     backward_prediction = backward_prediction * 255
-    cv2.imwrite(f'./results/problem_2/interpolated_frames/{dataset}/backward_prediction_{image_ind + 1}.png',
+    cv2.imwrite(f'./results/lucas_kanade/interpolated_frames/{dataset}/backward_prediction_{image_ind + 1}.png',
                 backward_prediction)
 
     # interpolated_frame = cv2.addWeighted(forward_prediction, 0.5, backward_prediction, 0.5, 0)
-    # cv2.imwrite(f'./results/problem_2/interpolated_frames/{dataset}/interpolated_{image_ind + 1}.png',
+    # cv2.imwrite(f'./results/lucas_kanade/interpolated_frames/{dataset}/interpolated_{image_ind + 1}.png',
     #             interpolated_frame)
 
     # Intermediate frame t=0.5
@@ -139,7 +139,7 @@ def warp_flow(firstImage, secondImage, forward_flow, If, backward_flow, Ib, imag
                 It[i, j] = image1_interp(xt0[i, j], yt0[i, j])
 
     It = It.astype(np.int)
-    cv2.imwrite(f'./results/problem_2/interpolated_frames/{dataset}/interpolated_{image_ind + 1}.png', It)
+    cv2.imwrite(f'./results/lucas_kanade/interpolated_frames/{dataset}/interpolated_{image_ind + 1}.png', It)
 
 
 def outside_in_fill(image):
