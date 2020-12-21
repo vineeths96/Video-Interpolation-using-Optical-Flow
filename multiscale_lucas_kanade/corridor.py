@@ -14,8 +14,8 @@ def corridor_interpolation(N=5):
     :return: None
     """
 
-    images = glob.glob('./input/corridor/*.pgm')
-    images.sort(key=lambda f: int(re.sub('\D', '', f)))
+    images = glob.glob("./input/corridor/*.pgm")
+    images.sort(key=lambda f: int(re.sub("\D", "", f)))
 
     for ind in range(0, len(images) - 1, 2):
         firstImage = cv2.imread(images[ind], flags=cv2.IMREAD_GRAYSCALE)
@@ -27,4 +27,4 @@ def corridor_interpolation(N=5):
         forward_flow, If = lucas_kanade_pyramid(firstImage, secondImage, N, ITERATION, LEVEL)
         backward_flow, Ib = lucas_kanade_pyramid(secondImage, firstImage, N, ITERATION, LEVEL)
 
-        warp_flow(firstImage, secondImage, forward_flow, If, backward_flow, Ib, ind, 'corridor')
+        warp_flow(firstImage, secondImage, forward_flow, If, backward_flow, Ib, ind, "corridor")

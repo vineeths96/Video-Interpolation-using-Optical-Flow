@@ -24,10 +24,11 @@ def compute_gradients(firstImage, secondImage):
     # kernel_y = np.array([[-1., -1.], [1., 1.]]) / 4
     # kernel_t = np.array([[1., 1.], [1., 1.]]) / 4
 
-    Ix = scipy.ndimage.convolve(input=firstImage, weights=kernel_x, mode='nearest')
-    Iy = scipy.ndimage.convolve(input=firstImage, weights=kernel_y, mode='nearest')
-    It = scipy.ndimage.convolve(input=secondImage, weights=kernel_t, mode='nearest') + scipy.ndimage.convolve(
-        input=firstImage, weights=-kernel_t, mode='nearest')
+    Ix = scipy.ndimage.convolve(input=firstImage, weights=kernel_x, mode="nearest")
+    Iy = scipy.ndimage.convolve(input=firstImage, weights=kernel_y, mode="nearest")
+    It = scipy.ndimage.convolve(input=secondImage, weights=kernel_t, mode="nearest") + scipy.ndimage.convolve(
+        input=firstImage, weights=-kernel_t, mode="nearest"
+    )
 
     I = [Ix, Iy, It]
 
@@ -52,13 +53,11 @@ def horn_schunk(firstImage, secondImage, lambada, num_iter, image_ind, dataset):
     [Ix, Iy, It] = compute_gradients(firstImage, secondImage)
 
     # Optical flow averaging kernel
-    kernel = np.array([[0, 1 / 4, 0],
-                       [1 / 4, 0, 1 / 4],
-                       [0, 1 / 4, 0]], dtype=np.float32)
+    kernel = np.array([[0, 1 / 4, 0], [1 / 4, 0, 1 / 4], [0, 1 / 4, 0]], dtype=np.float32)
 
     for _ in range(num_iter):
-        u_avg = scipy.ndimage.convolve(input=u, weights=kernel, mode='nearest')
-        v_avg = scipy.ndimage.convolve(input=v, weights=kernel, mode='nearest')
+        u_avg = scipy.ndimage.convolve(input=u, weights=kernel, mode="nearest")
+        v_avg = scipy.ndimage.convolve(input=v, weights=kernel, mode="nearest")
 
         grad = (Ix * u_avg + Iy * v_avg + It) / (lambada ** 2 + Ix ** 2 + Iy ** 2)
 
@@ -66,7 +65,7 @@ def horn_schunk(firstImage, secondImage, lambada, num_iter, image_ind, dataset):
         v = v_avg - lambada * Iy * grad
 
     flow_map = compute_flow_map(u, v, 8)
-    plt.imshow(firstImage * 255, cmap='gray')
+    plt.imshow(firstImage * 255, cmap="gray")
     plt.imshow(flow_map, cmap=None)
 
     # Plot, visualize and save the optical flow

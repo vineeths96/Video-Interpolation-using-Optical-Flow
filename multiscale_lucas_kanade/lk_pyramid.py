@@ -26,8 +26,9 @@ def lucas_kanade_iterative(firstImage, secondImage, flow, N):
     # Find Lucas Kanade OF for a block N x N with least squares solution
     for i in range(half_window_size, image_shape[0] - half_window_size):
         for j in range(half_window_size, image_shape[1] - half_window_size):
-            firstImageSlice = firstImage[i - half_window_size:i + half_window_size + 1,
-                              j - half_window_size:j + half_window_size + 1]
+            firstImageSlice = firstImage[
+                i - half_window_size : i + half_window_size + 1, j - half_window_size : j + half_window_size + 1
+            ]
 
             # Find indices to warp second image
             lr = (i - half_window_size) + coarse_v[i, j]
@@ -60,7 +61,7 @@ def lucas_kanade_iterative(firstImage, secondImage, flow, N):
                 lc = j - half_window_size
                 hc = j + half_window_size
 
-            secondImageSlice = secondImage[int(lr):int(hr + 1), int(lc):int(hc + 1)]
+            secondImageSlice = secondImage[int(lr) : int(hr + 1), int(lc) : int(hc + 1)]
 
             # Refine optical flow
             uSlice, vSlice = lucas_kanade(firstImageSlice, secondImageSlice, N)
@@ -100,16 +101,20 @@ def lucas_kanade_pyramid(firstImage, secondImage, N, iteration, num_levels):
     for level in range(1, num_levels):
         firstImage = downSample(firstImage)
         secondImage = downSample(secondImage)
-        firstImagePyramid[0:firstImage.shape[0], 0:firstImage.shape[1], level] = firstImage
-        secondImagePyramid[0:secondImage.shape[0], 0:secondImage.shape[1], level] = secondImage
+        firstImagePyramid[0 : firstImage.shape[0], 0 : firstImage.shape[1], level] = firstImage
+        secondImagePyramid[0 : secondImage.shape[0], 0 : secondImage.shape[1], level] = secondImage
 
     # Find optical flow at level0 and refine it with iterative Lucas Kande method
     level0 = num_levels - 1
     level0_scale = 2 ** level0
-    firstImage_level0 = firstImagePyramid[0:(len(firstImagePyramid[:, 0]) // level0_scale),
-                        0:(len(firstImagePyramid[0, :]) // level0_scale), level0]
-    secondImage_level0 = secondImagePyramid[0:(len(secondImagePyramid[:, 0]) // level0_scale),
-                         0:(len(secondImagePyramid[0, :]) // level0_scale), level0]
+    firstImage_level0 = firstImagePyramid[
+        0 : (len(firstImagePyramid[:, 0]) // level0_scale), 0 : (len(firstImagePyramid[0, :]) // level0_scale), level0
+    ]
+    secondImage_level0 = secondImagePyramid[
+        0 : (len(secondImagePyramid[:, 0]) // level0_scale),
+        0 : (len(secondImagePyramid[0, :]) // level0_scale),
+        level0,
+    ]
     (u, v) = lucas_kanade(firstImage_reference, secondImage_reference, N)
 
     for i in range(0, iteration):
@@ -125,10 +130,16 @@ def lucas_kanade_pyramid(firstImage, secondImage, N, iteration, num_levels):
         upsampled_v = upSample(v)
         levelk = num_levels - k - 1
         levelk_scale = 2 ** levelk
-        firstImageIntermediate = firstImagePyramid[0:(len(firstImagePyramid[:, 0]) // levelk_scale),
-                                 0:(len(firstImagePyramid[0, :]) // levelk_scale), levelk]
-        secondImageIntermediate = secondImagePyramid[0:(len(secondImagePyramid[:, 0]) // levelk_scale),
-                                  0:(len(secondImagePyramid[0, :]) // levelk_scale), levelk]
+        firstImageIntermediate = firstImagePyramid[
+            0 : (len(firstImagePyramid[:, 0]) // levelk_scale),
+            0 : (len(firstImagePyramid[0, :]) // levelk_scale),
+            levelk,
+        ]
+        secondImageIntermediate = secondImagePyramid[
+            0 : (len(secondImagePyramid[:, 0]) // levelk_scale),
+            0 : (len(secondImagePyramid[0, :]) // levelk_scale),
+            levelk,
+        ]
         (u, v) = lucas_kanade_iterative(firstImageIntermediate, secondImageIntermediate, [upsampled_u, upsampled_v], N)
 
         u_levels.append(u.copy())
@@ -147,10 +158,11 @@ def lucas_kanade_pyramid(firstImage, secondImage, N, iteration, num_levels):
     # kernel_y = np.array([[-1., -1.], [1., 1.]]) / 4
     # kernel_t = np.array([[1., 1.], [1., 1.]]) / 4
 
-    Ix = scipy.ndimage.convolve(input=firstImage, weights=kernel_x, mode='nearest')
-    Iy = scipy.ndimage.convolve(input=firstImage, weights=kernel_y, mode='nearest')
-    It = scipy.ndimage.convolve(input=secondImage, weights=kernel_t, mode='nearest') + scipy.ndimage.convolve(
-        input=firstImage, weights=-kernel_t, mode='nearest')
+    Ix = scipy.ndimage.convolve(input=firstImage, weights=kernel_x, mode="nearest")
+    Iy = scipy.ndimage.convolve(input=firstImage, weights=kernel_y, mode="nearest")
+    It = scipy.ndimage.convolve(input=secondImage, weights=kernel_t, mode="nearest") + scipy.ndimage.convolve(
+        input=firstImage, weights=-kernel_t, mode="nearest"
+    )
 
     flow = [u_levels[-1], v_levels[-1]]
     I = [Ix, Iy, It]

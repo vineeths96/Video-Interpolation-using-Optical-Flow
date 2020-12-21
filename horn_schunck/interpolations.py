@@ -26,8 +26,10 @@ def warp_flow(firstImage, secondImage, forward_flow, If, backward_flow, Ib, imag
     # Image is scaled because flow is calculated with scaled images
     forward_prediction = firstImage / 255 + uf * Ix + vf * Iy + It
     forward_prediction = forward_prediction * 255
-    cv2.imwrite(f'./results/horn_schunck/interpolated_frames/{dataset}/forward_prediction_{image_ind + 1}.png',
-                forward_prediction)
+    cv2.imwrite(
+        f"./results/horn_schunck/interpolated_frames/{dataset}/forward_prediction_{image_ind + 1}.png",
+        forward_prediction,
+    )
 
     ub, vb = backward_flow
     Ix, Iy, It = Ib
@@ -35,8 +37,10 @@ def warp_flow(firstImage, secondImage, forward_flow, If, backward_flow, Ib, imag
     # Image is scaled because flow is calculated with scaled images
     backward_prediction = secondImage / 255 + ub * Ix + vb * Iy + It
     backward_prediction = backward_prediction * 255
-    cv2.imwrite(f'./results/horn_schunck/interpolated_frames/{dataset}/backward_prediction_{image_ind + 1}.png',
-                backward_prediction)
+    cv2.imwrite(
+        f"./results/horn_schunck/interpolated_frames/{dataset}/backward_prediction_{image_ind + 1}.png",
+        backward_prediction,
+    )
 
     # interpolated_frame = cv2.addWeighted(forward_prediction, 0.5, backward_prediction, 0.5, 0)
     # cv2.imwrite(f'./results/horn_schunck/interpolated_frames/{dataset}/interpolated_{image_ind + 1}.png',
@@ -131,7 +135,8 @@ def warp_flow(firstImage, secondImage, forward_flow, If, backward_flow, Ib, imag
     for i in range(It.shape[0]):
         for j in range(It.shape[1]):
             if not (occlusion_first[i, j] or occlusion_second[i, j]) or (
-                    occlusion_first[i, j] and occlusion_second[i, j]):
+                occlusion_first[i, j] and occlusion_second[i, j]
+            ):
                 It[i, j] = t * image1_interp(xt0[i, j], yt0[i, j]) + (1 - t) * image2_interp(xt1[i, j], yt1[i, j])
             elif occlusion_first[i, j]:
                 It[i, j] = image2_interp(xt1[i, j], yt1[i, j])
@@ -139,7 +144,7 @@ def warp_flow(firstImage, secondImage, forward_flow, If, backward_flow, Ib, imag
                 It[i, j] = image1_interp(xt0[i, j], yt0[i, j])
 
     It = It.astype(np.int)
-    cv2.imwrite(f'./results/horn_schunck/interpolated_frames/{dataset}/interpolated_{image_ind + 1}.png', It)
+    cv2.imwrite(f"./results/horn_schunck/interpolated_frames/{dataset}/interpolated_{image_ind + 1}.png", It)
 
 
 def outside_in_fill(image):
