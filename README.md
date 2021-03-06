@@ -17,7 +17,7 @@
 
 </p>
 
-> tags : frame interpolation, optical flow, lucas kande, multiscale, horn schunk, digital video,deep learning, pytorch
+> tags : frame interpolation, optical flow, lucas kande, multiscale, horn schunk, digital video, deep learning, pytorch
 
 
 
